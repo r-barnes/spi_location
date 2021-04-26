@@ -30,6 +30,24 @@ addv5_outer_lines = " OR ".join([f"CST00TYP='{x}'" for x in addv5_outer_lines])
 rule all:
     input: ["out/poi-addv72_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv72_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv5_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv5_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv"]
 
+rule unzip_addv5:
+    input: "data/addv5.zip"
+    output: "data/addv5/add5_coastline.shp"
+    shell:
+        """
+        cd data
+        unzip addv5.zip
+        """
+
+rule unzip_addv72:
+    input: "data/addv72-lines.zip"
+    output: "data/addv72-lines/add_coastline_high_res_line_v7.2.shp"
+    shell:
+        """
+        cd data
+        unzip addv72-lines.zip
+        """
+
 rule addv5_inner_wgs84:
     input: "data/addv5/add5_coastline.shp"
     output: "temp/addv5_inner_wgs84.shp"
