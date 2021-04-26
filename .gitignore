@@ -1,0 +1,7 @@
+build/
+.vscode/
+.snakemake/
+temp/
+out/
+data/addv72-lines/
+data/addv5/

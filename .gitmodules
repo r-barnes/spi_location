@@ -1,0 +1,3 @@
+[submodule "submodules/Barnes2019-DggBestOrientations"]
+	path = submodules/Barnes2019-DggBestOrientations
+	url = https://github.com/r-barnes/Barnes2019-DggBestOrientations.git
