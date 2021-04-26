@@ -150,6 +150,18 @@ ADDv72 Outer  64.8899669821  -83.9040073174  1590.3640236480
 
 
 
+Why previous values are incorrect
+----------------------------------------
+
+@Barnes2019 uses a variant of the above algorithm to calculate the location of
+the SPI, but obtains a value significantly different from ours. This is because
+the @Barnes2019 calculation relies on the GSHHG dataset which divides Antarctica
+in half into two polygons. This line of division is then interpolated (per the
+algorithm) resulting in an inaccurate SPI location. Because the data we use here
+does not have this anomaly the algorithm returns correct results in our case.
+
+
+
 Bibliography
 ---------------------------
 
