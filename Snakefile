@@ -7,6 +7,8 @@ SPACING = 50
 
 # Shapefile SQL queries. These are the features used from each shapefile to
 # identify the relevant coastlines for a calculation.
+addv74_inner_lines = ["rock coastline", "rock against ice shelf", "ice coastline", "grounding line"]
+addv74_outer_lines = ["ice coastline", "ice shelf and front", "rock coastline"]
 addv72_inner_lines = ["rock coastline", "rock against ice shelf", "ice coastline", "grounding line"]
 addv72_outer_lines = ["ice coastline", "ice shelf and front", "rock coastline"]
 addv5_inner_lines = ["WE JUST USE EVERYTHING, SO THIS IS IGNORED"]
@@ -21,6 +23,8 @@ addv5_outer_lines = [
 
 
 # Query generation (do not edit)
+addv74_inner_lines = " OR ".join([f"surface='{x}'" for x in addv74_inner_lines])
+addv74_outer_lines = " OR ".join([f"surface='{x}'" for x in addv74_outer_lines])
 addv72_inner_lines = " OR ".join([f"surface='{x}'" for x in addv72_inner_lines])
 addv72_outer_lines = " OR ".join([f"surface='{x}'" for x in addv72_outer_lines])
 addv5_outer_lines = " OR ".join([f"CST00TYP='{x}'" for x in addv5_outer_lines])
@@ -28,7 +32,13 @@ addv5_outer_lines = " OR ".join([f"CST00TYP='{x}'" for x in addv5_outer_lines])
 
 
 rule all:
-    input: ["out/poi-addv72_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv72_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv5_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv", "out/poi-addv5_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv"]
+    input:
+        "out/poi-addv74_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv",
+        "out/poi-addv74_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv",
+        "out/poi-addv72_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv",
+        "out/poi-addv72_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv",
+        "out/poi-addv5_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv",
+        "out/poi-addv5_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv"
 
 rule unzip_addv5:
     input: "data/addv5.zip"
@@ -36,7 +46,9 @@ rule unzip_addv5:
     shell:
         """
         cd data
-        unzip addv5.zip
+        mkdir -p addv5/
+        cd addv5
+        unzip ../addv5.zip
         """
 
 rule unzip_addv72:
@@ -45,7 +57,20 @@ rule unzip_addv72:
     shell:
         """
         cd data
-        unzip addv72-lines.zip
+        mkdir -p addv72-lines/
+        cd addv72-lines
+        unzip ../addv72-lines.zip
+        """
+
+rule unzip_addv74:
+    input: "data/addv74-lines.zip"
+    output: "data/addv74-lines/add_coastline_high_res_line_v7_4.shp"
+    shell:
+        """
+        cd data
+        mkdir -p addv74-lines/
+        cd addv74-lines
+        unzip ../addv74-lines.zip
         """
 
 rule addv5_inner_wgs84:
@@ -82,6 +107,44 @@ rule addv72_outer_wgs84:
         """
         mkdir -p temp/
         ogr2ogr -progress -t_srs '+proj=longlat +datum=WGS84 +no_defs' -where "{addv72_outer_lines}" -f "ESRI Shapefile" temp/addv72_outer_wgs84.shp data/addv72-lines/add_coastline_high_res_line_v7.2.shp
+        """
+
+rule addv74_inner_wgs84:
+    input: "data/addv74-lines/add_coastline_high_res_line_v7_4.shp"
+    output: "temp/addv74_inner_wgs84.shp"
+    shell:
+        """
+        mkdir -p temp/
+        ogr2ogr -progress -t_srs '+proj=longlat +datum=WGS84 +no_defs' -where "{addv74_inner_lines}" -f "ESRI Shapefile" temp/addv74_inner_wgs84.shp data/addv74-lines/add_coastline_high_res_line_v7_4.shp
+        """
+
+rule addv74_outer_wgs84:
+    input: "data/addv74-lines/add_coastline_high_res_line_v7_4.shp"
+    output: "temp/addv74_outer_wgs84.shp"
+    shell:
+        """
+        mkdir -p temp/
+        ogr2ogr -progress -t_srs '+proj=longlat +datum=WGS84 +no_defs' -where "{addv74_outer_lines}" -f "ESRI Shapefile" temp/addv74_outer_wgs84.shp data/addv74-lines/add_coastline_high_res_line_v7_4.shp
+        """
+
+rule find_spi_for_addv74_outer_wgs84:
+    input: ["temp/addv74_outer_wgs84.shp", "build/poi.exe", "data/previous_poles.csv"]
+    output: "out/poi-addv74_outer_wgs84-ellipsoidal-circles_of_inaccessibility.csv"
+    threads: workflow.cores
+    shell:
+        """
+        mkdir -p out/
+        ./build/poi.exe --previous_poles data/previous_poles.csv --coastname addv74_outer_wgs84 --shapefile temp/addv74_outer_wgs84.shp --layer addv74_outer_wgs84 --projection ellipsoidal --spacing {SPACING} --interp_dist {INTERP_DIST} --south_of -66.5 --distance_filter 500 --likely_frac 0.1 -o out/poi-addv74_outer_wgs84-ellipsoidal
+        """
+
+rule find_spi_for_addv74_inner_wgs84:
+    input: ["temp/addv74_inner_wgs84.shp", "build/poi.exe", "data/previous_poles.csv"]
+    output: "out/poi-addv74_inner_wgs84-ellipsoidal-circles_of_inaccessibility.csv"
+    threads: workflow.cores
+    shell:
+        """
+        mkdir -p out/
+        ./build/poi.exe --previous_poles data/previous_poles.csv --coastname addv74_inner_wgs84 --shapefile temp/addv74_inner_wgs84.shp --layer addv74_inner_wgs84 --projection ellipsoidal --spacing {SPACING} --interp_dist {INTERP_DIST} --south_of -66.5 --distance_filter 500 --likely_frac 0.1 -o out/poi-addv74_inner_wgs84-ellipsoidal
         """
 
 rule find_spi_for_addv72_outer_wgs84:

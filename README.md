@@ -6,8 +6,8 @@ the Southern Pole of Inaccessibility (SPI).
 
 The **data** directory contains the
 [Antarctic Digital Database (ADD)](https://www.add.scar.org/)
-v5 and v7.2 data files as well as a list of previously identified locations
-for the SPI.
+v5, v7.2, and v7.4 data files as well as a list of previously identified
+locations for the SPI.
 
 Our goal is to use this data to identify the "true" location of the SPI.
 
@@ -65,10 +65,11 @@ The ADDv7.2 data is available at:
  * https://data.bas.ac.uk/metadata.php?id=GB/NERC/BAS/PDC/01398
  * https://ramadda.data.bas.ac.uk/repository/entry/show?entryid=b046fd0d-11ce-48a0-8e49-44694a4b889d
 
-The ADDv5 data was provided by [Laura Gerrish](lauger@bas.ac.uk).
+The ADDv5 and ADDv7.4 data were provided by [Laura Gerrish](lauger@bas.ac.uk).
 
-Feature categories in ADDv7.2 are largely self-explanatory. Feature categories
-for ADDv5 were inferred from http://apdrc.soest.hawaii.edu/doc/gebco_manual.pdf
+Feature categories in ADDv7.2 and ADDv7.4 are largely self-explanatory. Feature
+categories for ADDv5 were inferred from
+https://www.scar.org/library/scar-publications/occasional-publications/5241-add-manual-v3/file/
 and are as follows:
 
  * 22010 for ice coastline (definite)
@@ -117,11 +118,14 @@ slight modifications were made for this work so we review the algorithm.
    from the coast until it fails to find an improvement a certain number of
    times.
 10. The points now represent an estimate of the SPI. The point farthest from the
-    coast is the best estimate.
+    coast is the best estimate (points _very_ far from the coast, approximately
+    16,000km indicate the farthest you can be from the coastline while not being
+    constrained to be within Antarctica - these result from the optimization
+    procedure ignoring whether or not a point is constrained by the coastline).
 11. The circle of inaccessibility is calculated by asking for the nearest
     coastal point to each SPI and then returning all points within a 30km
     annulus whose inner boundary is at that distance. The three innermost
-    points represent the circle of inaccessibility.
+    points at distinct locations represent the circle of inaccessibility.
 12. All the points are sorted by distance and written to CSV.
 
 
@@ -146,6 +150,8 @@ ADDv5 Inner   55.0877304200  -82.9557084809  1242.7569109758
 ADDv5 Outer   65.6671478591  -83.9340046532  1588.5717760481
 ADDv72 Inner  53.7204104397  -83.6098203200  1179.4002101212
 ADDv72 Outer  64.8899669821  -83.9040073174  1590.3640236480
+ADDv74 Inner  53.7204104397  -83.6098203200  1179.4002101212
+ADDv74 Outer  64.8900417225  -83.9040120436  1590.3643468821
 ```
 
 The Circles of Inaccessibility are approximated by:
@@ -166,6 +172,14 @@ ADDv72 Inner   -160.5339079205   -85.3522518964    1179.3995893028
 ADDv72 Outer     73.7543135023   -69.7598961098    1590.3640236480
 ADDv72 Outer    -35.9171682350   -78.2032445423    1590.3610013130
 ADDv72 Outer    164.4134070100   -78.0793593993    1590.3621013355
+
+ADDv74 Inner     67.2153366299   -73.3254448776    1179.4002101212
+ADDv74 Inner    -44.0614952271   -82.4001307819    1179.3992009832
+ADDv74 Inner   -160.5339079205   -85.3522518964    1179.3995893028
+
+ADDv74 Outer     73.7543135023   -69.7598961098    1590.3643468821
+ADDv74 Outer    164.4134070100   -78.0793593993    1590.3610713442
+ADDv74 Outer    -35.9171682350   -78.2032445423    1590.3614201227
 ```
 
 
