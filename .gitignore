@@ -3,5 +3,6 @@ build/
 .snakemake/
 temp/
 out/
+data/addv74-lines/
 data/addv72-lines/
 data/addv5/
