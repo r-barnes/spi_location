@@ -5,6 +5,7 @@ from numpy.core.numeric import isclose
 import pandas as pd
 
 def is_close(x: float, y: float) -> bool:
+  """Are x and y within 1e-2 of each other, accounting for circles?"""
   close_func = lambda x, y: np.isclose(x, y, atol=0, rtol=1e-2)
   # Account for wrap-around
   close = False
@@ -16,6 +17,7 @@ def is_close(x: float, y: float) -> bool:
 
 
 def pair_close(a: Tuple[float, float], b: Tuple[float, float]) -> bool:
+  """Are point pairs a and b close to each other?"""
   return is_close(a[0], b[0]) and is_close(a[1], b[1])
 
 
@@ -36,14 +38,19 @@ for input_file in snakemake.input:
   circles_file = input_file.replace("-poles_of_inaccessibility.csv", "-circles_of_inaccessibility.csv")
   poles = pd.read_csv(poles_file)
   circles = pd.read_csv(circles_file)
+
   # We know the pole is closer to the coast than this, so we use it to filter
   # antipodes
   poles = poles[poles["Distance"]<2000]
   poles = poles.sort_values(by="Distance", ascending=False)
   best_pole = poles.iloc[0]
+
   # Get circles of inaccessibility for the best pole
   circles = circles[circles["poi_num"]==best_pole["poi_num"]]
   circles = circles.sort_values(by="distance", ascending=True)
+
+  # Find "unique points" (not too close to each other) to represent the circle
+  # of inaccessibility
   circle_pts = []
   for _, row in circles.iterrows():
     for circle_pt in circle_pts:
@@ -51,9 +58,10 @@ for input_file in snakemake.input:
         break
     else:
       circle_pts.append(row)
-      # print("BOB", circle_pts)
 
   results.append((best_pole, circle_pts))
+
+
 
 best_poles = pd.DataFrame(data={
   "Coastline": [x[0]["data"] for x in results],
